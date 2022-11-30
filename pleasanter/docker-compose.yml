@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  postgres:
+    build: postgres/.
+    container_name: pg
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=Implem.Pleasanter
+    command: 'postgres -c config_file="/etc/postgresql.conf"'
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d
+      - ./postgres/postgresql.conf:/etc/postgresql.conf
+      - db-data:/var/lib/postgresql/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "2"
+    networks:
+      - default
+      - pleasanter-service-network
+
+  pleasanter-web:
+    container_name: web
+    ports:
+      - "5000:5000"
+    build:
+      context: web/.
+    volumes:
+      - type: bind
+        source: ./web/pleasanter
+        target: /web/pleasanter
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "2"
+    networks:
+      - default
+      - pleasanter-service-network
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  pleasanter-service-network:
